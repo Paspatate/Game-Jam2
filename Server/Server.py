@@ -291,7 +291,17 @@ def load_config(path):
         print(e)
         exit(1)
 
+def load_config_from_env():
+    return {
+        "server_ip": os.getenv("SERVER_IP", "0.0.0.0"),
+        "server_port": int(os.getenv("SERVER_PORT", "9999")),
+            "num_player": int(os.getenv("SERVER_PLAYER", "4")),
+    }
+
 if __name__ == "__main__":
-    config = load_config("Config/server.json")
+    if os.getenv("SERVER_CONFIG_FROM_FILE") is None:
+        config = load_config("Config/server.json")
+    else:
+        config = load_config_from_env()
     server = Server(config)
     server.run()
