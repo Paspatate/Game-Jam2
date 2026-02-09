@@ -43,6 +43,7 @@ class ServerState(Enum):
     GAME_SETUP = 1
     PLAYING = 2
     END_GAME = 3
+    DIED = 4
 
 class Server:
     def __init__(self, config: dict) -> None:
@@ -63,6 +64,7 @@ class Server:
         self.colliders = []
 
         self.game_start = 0
+        self.running = False
     
     def new_net_id(self) -> int:
         self.next_net_id += 1
@@ -73,10 +75,10 @@ class Server:
     
     def run(self) -> None:
         """Boucle principale du server"""
-        run = True
+        self.running = True
         compute_time = 0
         print("Start server")
-        while run:
+        while self.running:
             start_delta_time = time()
             start_compute_time = time()
             match self.state:
@@ -210,7 +212,10 @@ class Server:
         self.entities = dict()
         self.game_start = time()
         self.next_net_id = 0
-        self.state = ServerState.WAIT_CON
+        self.state = ServerState.DIED
+        self.running = False
+        
+        print("INFO: Stopping server")
 
     def load_maps(self):
         self.maps = list()
