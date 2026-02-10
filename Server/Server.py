@@ -65,6 +65,7 @@ class Server:
 
         self.game_start = 0
         self.running = False
+        self.restart_game = config.get("restart_game")
     
     def new_net_id(self) -> int:
         self.next_net_id += 1
@@ -212,8 +213,13 @@ class Server:
         self.entities = dict()
         self.game_start = time()
         self.next_net_id = 0
-        self.state = ServerState.DIED
-        self.running = False
+        
+        if (self.restart_game):
+            self.state = ServerState.WAIT_CON
+            self.running = True
+        else:
+            self.state = ServerState.DIED
+            self.running = False
         
         print("INFO: Stopping server")
 
@@ -274,6 +280,9 @@ def load_config(path):
             },
             "num_player": {
                 "type": "integer"
+            },
+            "restart_game": {
+                "type": "boolean"
             }
         },
         "required": ["server_ip", "server_port", "num_player"]
@@ -300,7 +309,8 @@ def load_config_from_env():
     return {
         "server_ip": os.getenv("SERVER_IP", "0.0.0.0"),
         "server_port": int(os.getenv("SERVER_PORT", "9999")),
-            "num_player": int(os.getenv("SERVER_PLAYER", "4")),
+        "num_player": int(os.getenv("SERVER_PLAYER", "4")),
+        "restart_game": os.getenv("SERVER_RESTART_GAME", "true") in ["True", "true", "1", "t", "y", "yes"]
     }
 
 if __name__ == "__main__":
