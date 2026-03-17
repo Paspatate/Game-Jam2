@@ -252,6 +252,7 @@ class Audio_Manager():
     def queue_music(self,id):
         pygame.mixer.music.queue("./Assets/Audios/Musics/"+self.music[id])
 
+
 class UI():
 
     def set_menu(self, menu):
@@ -264,7 +265,10 @@ class UI():
         self.client.disconnect_server()
 
     def connect_to_serverip(self):
-        self.client.connect_server( self.input["ADDRESS"].get_text())
+        self.client.connect_server(self.input["DIRECT_ADDRESS"].get_text())
+
+    def connect_to_queue(self):
+        self.client.connect_queue(self.input["QUEUE_ADDRESS"].get_text())
 
     def start_game(self):
         self.menu=Menu.GAME
@@ -297,9 +301,31 @@ class UI():
     def init_connection(self):
         Label((50,20),(400,40),(255,255,255,0),self.connection_sprites,text="Connect to a server",fontsize=50,font=self.font)
         Button((10,10),(150,60),(255,255,255,0),self.connection_sprites,(self.quit_connect,None),texture="./Assets/UI/arrow1.png",font=self.font)
-        #address input
-        self.input["ADDRESS"] = Input((35,40),(260,40),(255,255,255,0),self.connection_sprites,(self.connect_to_serverip,None),"IP Address",texture="./Assets/UI/textinput-off1.png",texture_alt= "./Assets/UI/textinput-on1.png",font=self.font)
-        Button((65,40),(150,40),(255,255,255,0),self.connection_sprites,(self.connect_to_serverip,None),"Connect",texture="./Assets/UI/button1.png",font=self.font)
+        # address input
+        self.input["DIRECT_ADDRESS"] = Input((35,40),(260,40),(255,255,255,0),self.connection_sprites,(self.connect_to_serverip,None),"Direct IP Address",texture="./Assets/UI/textinput-off1.png",texture_alt= "./Assets/UI/textinput-on1.png",font=self.font)
+        self.input["QUEUE_ADDRESS"] = Input(
+                                            (35, 50),
+                                            (260, 40),
+                                            (255, 255, 255, 0),
+                                            self.connection_sprites,
+                                            (self.connect_to_serverip, None),
+                                            "Queue IP Address",
+                                            texture="./Assets/UI/textinput-off1.png",
+                                            texture_alt="./Assets/UI/textinput-on1.png",
+                                            font=self.font
+                                        )
+
+        Button(
+               (64, 50),
+               (150, 40),
+               (255, 255, 255, 0),
+               self.connection_sprites,
+               (self.connect_to_queue, None),
+               "Queue",
+               texture="./Assets/UI/button1.png",
+               font=self.font
+           )
+        Button((65,40),(200,40),(255,255,255,0),self.connection_sprites,(self.connect_to_serverip,None),"Direct Connect",texture="./Assets/UI/button1.png",font=self.font)
 
         Button((60,60),(40,80),(255,255,255,0),self.connection_sprites,(self.select_player_skin,False),"",texture="./Assets/UI/rabbit1.png",font=self.font)
         Button((70,60),(40,80),(255,255,255,0),self.connection_sprites,(self.select_player_skin,True),"",texture="./Assets/UI/giraffe1.png",font=self.font)

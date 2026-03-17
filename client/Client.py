@@ -4,6 +4,8 @@ import socket
 import UI
 from Connection import Connection
 from Game import Game
+import paho.mqtt.client as mqtt
+import uuid
 
 class ClientState(Enum):
     OFFLINE= 0
@@ -12,15 +14,34 @@ class ClientState(Enum):
 
 DECO = "disconnect"
 
+
+def mqtt_on_message(client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
+    print("Received mqtt message")
+    parsed_message = json.loads(message.payload)
+    hostname = parsed_message.get("hostname")
+    port = parsed_message.get("port")
+    print(f"Connecting to the game server {hostname}:{port}")
+    userdata.connect_server(f"{hostname}:{port}")
+    client.loop_stop()
+    client.disconnect()
+
+def mqtt_on_subscribe(client, userdata, mid, granted_qos):
+    print("Subscribed to ")
+
 class ClientClass():
     def __init__(self) -> None:
-        self.state= ClientState.OFFLINE
-        self.ui=UI.UI(self)
+        self.state = ClientState.OFFLINE
+        self.ui = UI.UI(self)
         self.connection = Connection()
-        self.game = Game("Map/Arenas",self)
+        self.game = Game("Map/Arenas", self)
         self.game.connection = self.connection
         self.num_connected_player = -1
         self.max_player = -1
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.user_data_set(self)
+        self.mqtt_client.on_message = mqtt_on_message
+        self.mqtt_client.on_subscribe = mqtt_on_subscribe
+        self.unique_id = uuid.uuid4()
 
     def get_state(self):
         return self.state
@@ -30,13 +51,13 @@ class ClientClass():
 
     def get_connected_player(self):
         return self.num_connected_player
-    
+
     def is_connected(self):
         return self.connection.is_connected
 
     def run(self) -> None:
-        running =True
-        while running :
+        running = True
+        while running:
 
             packets = self.connection.receive_packets()
 
@@ -62,7 +83,7 @@ class ClientClass():
                                     self.game.serverSize = obj.get("size")
                                     self.state = ClientState.PLAYING
                 case ClientState.PLAYING:
-                    self.ui.menu = UI.Menu.GAME                      
+                    self.ui.menu = UI.Menu.GAME
                     self.game.update_game(packets)
 
             running=self.ui.handle_event()
@@ -72,6 +93,13 @@ class ClientClass():
     def game_over(self):
         self.ui.result.set_hide(False)
         self.ui.result_info.set_hide(False)
+
+    def connect_queue(self, addr: str):
+        host, port = addr.split(":")
+        self.mqtt_client.connect(host, int(port))
+        self.mqtt_client.loop_start()
+        self.mqtt_client.subscribe(f"clients/{str(self.unique_id)}", 2)
+        self.mqtt_client.publish("queue/add", str(self.unique_id), 2)
 
     def connect_server(self,addr : str) ->None: 
         try:
