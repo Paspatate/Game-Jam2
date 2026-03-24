@@ -491,6 +491,20 @@ class UI():
             surface.blit(text,((surface.get_width()-text.get_width())/2,(surface.get_height()-text.get_height())/2))
 
             self.screen.blit(surface,(pygame.display.get_window_size()[0]*0.30,pygame.display.get_window_size()[1]*0.45))
+        elif self.client.get_state() == Client.ClientState.WAIT_QUEUE:
+            font = pygame.font.Font(None, 40)
+            surface = pygame.Surface((150, 150))
+            surface.fill("white")
+            
+            spinner = ["_","_","_","-","`","`","'","´","-","_","_","_"]
+
+            tick = int((pygame.time.get_ticks() / 80) % len(spinner))
+            spinner_text = font.render(spinner[tick], False, "black")
+            queue_text = font.render("In Queue", False, "black")
+
+            surface.blit(queue_text, ((surface.get_width()-queue_text.get_width())/2,(surface.get_height()-queue_text.get_height()) * 1/3 ))
+            surface.blit(spinner_text,((surface.get_width()-spinner_text.get_width())/2,(surface.get_height()-spinner_text.get_height()) * 2/3))
+            self.screen.blit(surface,(pygame.display.get_window_size()[0]*0.30,pygame.display.get_window_size()[1]*0.45))
 
     def render_settings(self):
         self.settings_sprites.draw(self.screen)
