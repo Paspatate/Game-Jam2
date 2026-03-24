@@ -452,10 +452,17 @@ class UI():
     def key_update(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.result_info.set_hide(True)
-                self.result.set_hide(True)
-                self.menu=Menu.CONNECTION
-                self.client.disconnect_server()
+                if self.menu == Menu.GAME:
+                    self.result_info.set_hide(True)
+                    self.result.set_hide(True)
+                    self.menu=Menu.CONNECTION
+                    self.client.disconnect_server()
+                elif self.menu == Menu.CONNECTION and self.client.get_state() == Client.ClientState.WAIT_CON:
+                    self.menu = Menu.CONNECTION
+                    self.client.disconnect_server()
+                elif self.menu == Menu.CONNECTION and self.client.get_state() == Client.ClientState.WAIT_QUEUE:
+                    self.menu = Menu.CONNECTION
+                    self.client.quit_queue()
 
     def render_main(self):
         self.main_sprites.draw(self.screen)

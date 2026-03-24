@@ -28,8 +28,13 @@ def mqtt_on_message(client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
 
 
 def mqtt_on_subscribe(client, userdata, mid, granted_qos):
-    print("Subscribed to ")
+    print("Subscribed")
 
+def mqtt_on_disconnect(client, userdata, reason_code):
+    print("Disconnected from broker")
+
+def mqtt_on_publish(client, userdata, mid):
+    print("Published message", mid)
 
 class QueueOperation(int, Enum):
     ADD = 0
@@ -49,6 +54,8 @@ class ClientClass():
         self.mqtt_client.user_data_set(self)
         self.mqtt_client.on_message = mqtt_on_message
         self.mqtt_client.on_subscribe = mqtt_on_subscribe
+        self.mqtt_client.on_disconnect = mqtt_on_disconnect
+        self.mqtt_client.on_publish = mqtt_on_publish
         self.unique_id = uuid.uuid4()
 
     def get_state(self):
@@ -113,6 +120,14 @@ class ClientClass():
         self.mqtt_client.publish("queue/add", json.dumps(payload), 2)
 
         self.state = ClientState.WAIT_QUEUE
+
+    def quit_queue(self):
+        payload = {"uuid": str(self.unique_id), "op": QueueOperation.QUIT}
+        msg_info = self.mqtt_client.publish("queue/add", json.dumps(payload), 2)
+        msg_info.wait_for_publish(3)
+        self.state = ClientState.OFFLINE
+        self.mqtt_client.disconnect()
+        self.mqtt_client.loop_stop()
 
     def connect_server(self,addr : str) ->None: 
         try:
