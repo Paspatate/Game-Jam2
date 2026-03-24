@@ -308,7 +308,7 @@ class UI():
                                             (260, 40),
                                             (255, 255, 255, 0),
                                             self.connection_sprites,
-                                            (self.connect_to_serverip, None),
+                                            (self.connect_to_queue, None),
                                             "Queue IP Address",
                                             texture="./Assets/UI/textinput-off1.png",
                                             texture_alt="./Assets/UI/textinput-on1.png",
