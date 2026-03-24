@@ -110,7 +110,11 @@ class ClientClass():
         self.ui.result_info.set_hide(False)
 
     def connect_queue(self, addr: str):
-        host, port = addr.split(":")
+        host, port = (None, None) # initialization to help debugging
+        try:
+            host, port = addr.split(":")
+        except:
+            return
         self.mqtt_client.connect(host, int(port))
         self.mqtt_client.loop_start()
         self.mqtt_client.subscribe(f"clients/{str(self.unique_id)}", 2)
