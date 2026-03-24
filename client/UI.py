@@ -262,7 +262,10 @@ class UI():
 
     def quit_connect(self):
         self.menu=Menu.MAIN
-        self.client.disconnect_server()
+        if self.client.get_state() == Client.ClientState.WAIT_CON:
+            self.client.disconnect_server()
+        elif self.client.get_state() == Client.ClientState.WAIT_QUEUE:
+            self.client.quit_queue()
 
     def connect_to_serverip(self):
         self.client.connect_server(self.input["DIRECT_ADDRESS"].get_text())
