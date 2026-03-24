@@ -8,25 +8,33 @@ import paho.mqtt.client as mqtt
 import uuid
 
 class ClientState(Enum):
-    OFFLINE= 0
-    WAIT_CON= 1
+    OFFLINE = 0
+    WAIT_CON = 1
     PLAYING = 2
+    WAIT_QUEUE = 3
+
 
 DECO = "disconnect"
 
 
 def mqtt_on_message(client: mqtt.Client, userdata, message: mqtt.MQTTMessage):
-    print("Received mqtt message")
     parsed_message = json.loads(message.payload)
     hostname = parsed_message.get("hostname")
     port = parsed_message.get("port")
     print(f"Connecting to the game server {hostname}:{port}")
     userdata.connect_server(f"{hostname}:{port}")
-    client.loop_stop()
     client.disconnect()
+    client.loop_stop()
+
 
 def mqtt_on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to ")
+
+
+class QueueOperation(int, Enum):
+    ADD = 0
+    QUIT = 1
+
 
 class ClientClass():
     def __init__(self) -> None:
@@ -99,7 +107,12 @@ class ClientClass():
         self.mqtt_client.connect(host, int(port))
         self.mqtt_client.loop_start()
         self.mqtt_client.subscribe(f"clients/{str(self.unique_id)}", 2)
-        self.mqtt_client.publish("queue/add", str(self.unique_id), 2)
+
+        payload = {"uuid": str(self.unique_id), "op": QueueOperation.ADD}
+        print("payload to queue", json.dumps(payload))
+        self.mqtt_client.publish("queue/add", json.dumps(payload), 2)
+
+        self.state = ClientState.WAIT_QUEUE
 
     def connect_server(self,addr : str) ->None: 
         try:
