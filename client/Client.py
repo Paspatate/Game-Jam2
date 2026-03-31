@@ -57,6 +57,7 @@ class ClientClass():
         self.mqtt_client.on_disconnect = mqtt_on_disconnect
         self.mqtt_client.on_publish = mqtt_on_publish
         self.unique_id = uuid.uuid4()
+        self.server_host = ""
 
     def get_state(self):
         return self.state
@@ -82,6 +83,9 @@ class ClientClass():
                     pass
                 case ClientState.WAIT_CON:
                     self.connection.has_connected(packets)
+                    if not self.is_connected():
+                        self.connect_server(self.server_host)
+                    
                     for packet in packets:
                         if packet.decode("utf-8").find('{"n":') != -1:
                             obj = json.loads(packet.decode("utf-8"))
@@ -134,6 +138,8 @@ class ClientClass():
         self.mqtt_client.loop_stop()
 
     def connect_server(self,addr : str) ->None: 
+        self.server_host = addr
+        print(f"Trying to connecto to {addr}")
         try:
             ip,port = addr.split(":")
             self.connection.send_connect((ip,int(port)))
